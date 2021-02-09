@@ -1,0 +1,36 @@
+= Book
+== Book 신규 등록
+include::{snippets}/save/http-response.adoc[]
+include::{snippets}/save/curl-request.adoc[]
+include::{snippets}/save/http-request.adoc[]
+include::{snippets}/save/httpie-request.adoc[]
+include::{snippets}/save/request-body.adoc[]
+include::{snippets}/save/response-body.adoc[]
+== Book 전체 조회
+include::{snippets}/findAll/http-response.adoc[]
+include::{snippets}/findAll/curl-request.adoc[]
+include::{snippets}/findAll/http-request.adoc[]
+include::{snippets}/findAll/httpie-request.adoc[]
+include::{snippets}/findAll/request-body.adoc[]
+include::{snippets}/findAll/response-body.adoc[]
+== Book 상세 조회
+include::{snippets}/findById/http-response.adoc[]
+include::{snippets}/findById/curl-request.adoc[]
+include::{snippets}/findById/http-request.adoc[]
+include::{snippets}/findById/httpie-request.adoc[]
+include::{snippets}/findById/request-body.adoc[]
+include::{snippets}/findById/response-body.adoc[]
+== Book 수정
+include::{snippets}/update/http-response.adoc[]
+include::{snippets}/update/curl-request.adoc[]
+include::{snippets}/update/http-request.adoc[]
+include::{snippets}/update/httpie-request.adoc[]
+include::{snippets}/update/request-body.adoc[]
+include::{snippets}/update/response-body.adoc[]
+== Book 삭제
+include::{snippets}/delete/http-response.adoc[]
+include::{snippets}/delete/curl-request.adoc[]
+include::{snippets}/delete/http-request.adoc[]
+include::{snippets}/delete/httpie-request.adoc[]
+include::{snippets}/delete/request-body.adoc[]
+include::{snippets}/delete/response-body.adoc[]

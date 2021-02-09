@@ -1,0 +1,171 @@
+package com.cos.book.web;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
+import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
+import org.springframework.restdocs.operation.preprocess.Preprocessors;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
+
+import com.cos.book.domain.Book;
+import com.cos.book.service.BookService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
+
+// 단위 테스트 (Controller 관련 로직만 띄우기) // Controller, Filter, ControllerAdvice
+
+@Slf4j
+@WebMvcTest
+public class BookControllerUnitTest {
+
+	@Autowired
+	private MockMvc mockMvc;
+	
+	@MockBean // IoC환경에 해당 Bean이 등록된다.
+	private BookService bookService;
+	
+	protected RestDocumentationResultHandler document;
+	
+	@BeforeEach
+	private void setup(WebApplicationContext webApplicationContext,
+			RestDocumentationContextProvider restDocumentation) {
+		this.document = document("{class-name}/{method-name}",
+				Preprocessors.preprocessRequest(Preprocessors.prettyPrint()),
+				Preprocessors.preprocessResponse(Preprocessors.prettyPrint()));
+
+		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+				.addFilter(new CharacterEncodingFilter(StandardCharsets.UTF_8.name(), true))
+				.apply(documentationConfiguration(restDocumentation))		
+				.alwaysDo(document)
+				.build();
+	}
+	
+	// BDDMockito 패턴
+	@Test
+	public void save_테스트() throws Exception {
+		// given (테스트를 하기 위한 준비)
+		Book book = new Book(null, "스프링 따라하기", "코스");
+		String content = new ObjectMapper().writeValueAsString(book);
+		log.info("Json 데이터 : " + content);
+		when(bookService.저장하기(book)).thenReturn(new Book(1L, "스프링 따라하기", "코스")); // stub(가짜 결과를 지정해놓음)
+		
+		// when (테스트 실행)
+		ResultActions resultAction = mockMvc.perform(post("/book")
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.content(content)
+				.accept(MediaType.APPLICATION_JSON_UTF8));
+		
+		// then (검증)
+		resultAction
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.title").value("스프링 따라하기"))
+			.andDo(MockMvcResultHandlers.print());
+	}
+	
+	@Test
+	public void findAll_테스트() throws Exception {
+		// given
+		List<Book> books = new ArrayList<>();
+		books.add(new Book(1L, "스프링부트 따라하기", "혁"));
+		books.add(new Book(2L,"리액트 따라하기", "혁"));
+		when(bookService.모두가져오기()).thenReturn(books);
+		
+		// when
+		ResultActions resultAction = mockMvc.perform(get("/book")
+				.accept(MediaType.APPLICATION_JSON_UTF8));
+		
+		// then
+		resultAction
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$", Matchers.hasSize(2)))
+			.andExpect(jsonPath("$[0].title").value("스프링부트 따라하기"))
+			.andDo(MockMvcResultHandlers.print());
+	}
+	
+	@Test
+	public void findById_테스트() throws Exception {
+		// given
+		Long id = 1L;
+		when(bookService.한건가져오기(id)).thenReturn(new Book(1L, "스프링부트 따라하기", "혁"));
+		
+		// when
+		ResultActions resultAction = mockMvc.perform(get("/book/{id}", id)
+				.accept(MediaType.APPLICATION_JSON_UTF8));
+		
+		// then
+		resultAction
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$").value(new Book(1L, "스프링부트 따라하기", "혁")))
+			.andDo(MockMvcResultHandlers.print());
+	}
+	
+	@Test
+	public void update_테스트() throws Exception {
+		// given (테스트를 하기 위한 준비)
+		Long id = 1L;
+		Book book = new Book(null, "C++ 따라하기", "코스");
+		String content = new ObjectMapper().writeValueAsString(book);
+		log.info("Json 데이터 : " + content);
+		when(bookService.수정하기(id, book)).thenReturn(new Book(1L, "C++ 따라하기", "코스")); // stub(가짜 결과를 지정해놓음)
+		
+		// when (테스트 실행)
+		ResultActions resultAction = mockMvc.perform(put("/book/{id}", id)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.content(content)
+				.accept(MediaType.APPLICATION_JSON_UTF8));
+		
+		// then (검증)
+		resultAction
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.title").value("C++ 따라하기"))
+			.andDo(MockMvcResultHandlers.print());
+	}
+	
+	@Test
+	public void delete_테스트() throws Exception {
+		// given (테스트를 하기 위한 준비)
+		Long id = 1L;
+		when(bookService.삭제하기(id)).thenReturn("ok"); // stub(가짜 결과를 지정해놓음)
+		
+		// when (테스트 실행)
+		ResultActions resultAction = mockMvc.perform(delete("/book/{id}", id)
+				.accept(MediaType.TEXT_PLAIN));
+		
+		// then (검증)
+		resultAction
+			.andExpect(status().isOk())
+			.andDo(MockMvcResultHandlers.print());
+		
+		MvcResult requestResult = resultAction.andReturn();
+		String result = requestResult.getResponse().getContentAsString();
+		assertEquals(result, "ok");
+	}
+}
+

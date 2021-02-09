@@ -1,0 +1,6 @@
+[source,bash]
+----
+$ echo '{"id":null,"title":"스프링 따라하기","author":"코스"}' | http POST 'http://localhost:8080/book' \
+    'Content-Type:application/json;charset=UTF-8' \
+    'Accept:application/json;charset=UTF-8'
+----
